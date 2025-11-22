@@ -11,6 +11,21 @@ services:
     networks:
       - monitoring
 
+  postgres:
+    image: postgres:16
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: guest
+      POSTGRES_PASSWORD: guest
+      POSTGRES_DB: GreyOrange
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -49,7 +64,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - grafana_data:/var/lib/grafana
+      - grafana_data:/var/lib/grafana2
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -84,13 +99,39 @@ services:
       - ~/.m2:/root/.m2
     working_dir: /app/workspace
     command: mvn clean install -DskipTests -s /app/workspace/settings.xml -Puse-aspect
+ 
+  pact-broker:
+    image: pactfoundation/pact-broker:latest
+    depends_on:
+      - postgres
+    ports:
+      - "9292:9292"
+    environment:
+      PACT_BROKER_DATABASE_ADAPTER: postgres
+      PACT_BROKER_DATABASE_USERNAME: guest
+      PACT_BROKER_DATABASE_PASSWORD: guest
+      PACT_BROKER_DATABASE_HOST: postgres
+      PACT_BROKER_DATABASE_NAME: GreyOrange
+
+      PACT_BROKER_BASIC_AUTH_USERNAME: admin
+      PACT_BROKER_BASIC_AUTH_PASSWORD: password
+
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9292"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - monitoring 
+
 
 volumes:
   influxdb_data:
   grafana_data:
   rabbitmq_data:
   registry_data:
-
+  postgres_data:  
+  pact_postgres:
 networks:
   monitoring:
     driver: bridge

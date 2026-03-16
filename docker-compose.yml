@@ -1,6 +1,29 @@
 version: '3.8'
 
 services:
+
+  dev:
+    build: .
+    container_name: dev
+    env_file:
+      - .env
+    volumes:
+      - ${HOST_DIR}:/workspace
+      - ./openclaw-data:/root/.openclaw
+      - ~/.ssh:/root/.ssh:ro
+    working_dir: /workspace
+    ports:
+      - "18789:18789"
+    stdin_open: true
+    tty: true
+    command: >
+      bash -c "
+      openclaw gateway --port 18789 --verbose &
+      sleep infinity
+      "
+    networks:
+      - monitoring
+
   registry:
     image: registry:2
     container_name: registry

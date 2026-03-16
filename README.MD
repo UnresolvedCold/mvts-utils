@@ -49,3 +49,14 @@ This can be done for checking influx logging
 docker compose up -d -- grafana
 ```
 
+## Dev environment 
+
+The dev environment can be installed with a particular project mounted using HOST_DIR environemnt variable. The dev container comes with java 21 and python 3 installed. You can also trigger openclaw and have the agent full access to the mounted volumes. 
+
+```bash
+HOST_DIR=/Users/shubham.kumar/Projects/GreyOrange/mvts/vrp-obts-rec podman compose up -d --build -- dev
+```
+
+First things you wanna do -
+1. gh auth login
+2. openclaw onboard
